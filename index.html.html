@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create TIP-20 Token</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.min.js"></script>
+</head>
+<body style="font-family: sans-serif; text-align: center; padding: 2rem;">
+  <h1 style="color: #1e3a8a;">TIP-20 Token Creator</h1>
+
+  <button id="connectBtn" style="padding: 0.5rem 1rem; background: #1e3a8a; color: white; border: none; border-radius: 5px;">Connect Wallet</button>
+  <p id="status" style="color: green;"></p>
+
+  <div style="margin-top: 2rem;">
+    <input id="name" placeholder="Token Name" style="padding: 0.5rem; margin: 0.5rem;" />
+    <input id="symbol" placeholder="Symbol" style="padding: 0.5rem; margin: 0.5rem;" />
+    <input id="supply" placeholder="Initial Supply" type="number" style="padding: 0.5rem; margin: 0.5rem;" />
+  </div>
+
+  <button id="createBtn" style="padding: 0.5rem 1rem; margin-top: 1rem; background: #1e40af; color: white; border: none; border-radius: 5px;">Create Token</button>
+
+  <script>
+    const tip20FactoryAddress = '0x20Fc000000000000000000000000000000000000';
+    const tip20FactoryAbi = [ // minimal ABI
+      "function createToken(string name, string symbol, uint256 initialSupply) public returns (address)"
+    ];
+
+    let provider;
+    let signer;
+    let factoryContract;
+
+    document.getElementById('connectBtn').onclick = async () => {
+      if (!window.ethereum) {
+        alert('MetaMask not found!');
+        return;
+      }
+      provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = await provider.getSigner();
+      factoryContract = new ethers.Contract(tip20FactoryAddress, tip20FactoryAbi, signer);
+      document.getElementById('status').textContent = 'Wallet connected ✅';
+    }
+
+    document.getElementById('createBtn').onclick = async () => {
+      if (!factoryContract) {
+        alert('Connect wallet first!');
+        return;
+      }
+      const name = document.getElementById('name').value;
+      const symbol = document.getElementById('symbol').value;
+      const supply = document.getElementById('supply').value;
+
+      try {
+        const tx = await factoryContract.createToken(name, symbol, supply);
+        console.log('Transaction sent:', tx);
+        alert('Transaction sent! Check console for details.');
+      } catch (err) {
+        console.error(err);
+        alert('Error: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
